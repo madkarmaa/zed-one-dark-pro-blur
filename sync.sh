@@ -18,4 +18,6 @@ for theme in ../themes/tmp/OneDark-Pro*.json; do
     $BIN $theme --output $theme
 done
 
+cd ..
+
 uv run merge.py
