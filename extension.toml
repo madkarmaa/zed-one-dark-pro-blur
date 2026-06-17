@@ -4,6 +4,6 @@ id = "onedark-pro-blur"
 name = "OneDark Pro Blur"
 version = "0.0.1"
 
-authors = ["madkarmaa"]
+authors = ["MadKarma"]
 description = "Zed OneDark Pro port with blur effects"
 repository = "https://github.com/madkarmaa/zed-one-dark-pro-blur"
