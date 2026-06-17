@@ -1,19 +1,20 @@
 import json
 from pathlib import Path
+from typing import Any
 
-THEMES_DIR = Path("themes/").resolve()
-TEMP_THEMES_DIR = Path("themes/tmp/").resolve()
+THEMES_DIR: Path = Path("themes/").resolve()
+TEMP_THEMES_DIR: Path = Path("themes/tmp/").resolve()
 
-FINAL_THEME = THEMES_DIR / "onedark-pro-blur.json"
-BASE_THEME = TEMP_THEMES_DIR / "base.json"
-TEMP_THEMES = [
+FINAL_THEME: Path = THEMES_DIR / "onedark-pro-blur.json"
+BASE_THEME: Path = TEMP_THEMES_DIR / "base.json"
+TEMP_THEMES: list[Path] = [
     theme
     for theme in TEMP_THEMES_DIR.iterdir()
     if theme.is_file() and theme.suffix == ".json" and theme != BASE_THEME
 ]
 
 
-def make_overrides(bg: str, surface: str) -> dict:
+def make_overrides(bg: str, surface: str) -> dict[str, str]:
     return {
         "background.appearance": "blurred",
         "background": bg + "d9",
@@ -28,7 +29,7 @@ def make_overrides(bg: str, surface: str) -> dict:
     }
 
 
-VARIANT_OVERRIDES = {
+VARIANT_OVERRIDES: dict[str, dict[str, str]] = {
     "OneDark-Pro": make_overrides("#282c34", "#21252b"),
     "OneDark-Pro-flat": make_overrides("#282c34", "#282c34"),
     "OneDark-Pro-mix": make_overrides("#282c34", "#21252b"),
@@ -36,7 +37,7 @@ VARIANT_OVERRIDES = {
     "OneDark-Pro-night-flat": make_overrides("#16191d", "#16191d"),
 }
 
-SYNTAX_OVERRIDES = {
+SYNTAX_OVERRIDES: dict[str, dict[str, Any]] = {
     "property": {"color": "#e06c75", "font_style": None, "font_weight": None},
     "boolean": {"color": "#56b6c2", "font_style": None, "font_weight": None},
     "enum": {"color": "#d19a66", "font_style": None, "font_weight": None},
@@ -69,7 +70,7 @@ SYNTAX_OVERRIDES = {
 }
 
 
-def apply_syntax_overrides(theme_data: dict) -> dict:
+def apply_syntax_overrides(theme_data: dict[str, Any]) -> dict[str, Any]:
     style = theme_data.get("style", {})
     syntax = style.get("syntax", {})
 
@@ -81,7 +82,7 @@ def apply_syntax_overrides(theme_data: dict) -> dict:
     return theme_data
 
 
-def apply_blur(style: dict, theme_file: Path) -> dict:
+def apply_blur(style: dict[str, str], theme_file: Path) -> dict[str, str]:
     overrides = VARIANT_OVERRIDES.get(theme_file.stem)
     if overrides is None:
         return style
