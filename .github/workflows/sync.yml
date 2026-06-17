@@ -1,0 +1,51 @@
+name: Sync themes
+
+on:
+    workflow_dispatch:
+    schedule:
+        - cron: '0 0 1 * *'
+
+permissions:
+    contents: write
+    pull-requests: write
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        name: Sync
+
+        steps:
+        - name: Checkout
+          uses: actions/checkout@v6
+
+        - name: Clone zed
+          run: git clone https://github.com/zed-industries/zed.git --depth 1
+
+        - name: Cache dependencies
+          uses: actions/cache@v5
+          with:
+            path: |
+                ~/.cargo/registry
+                ~/.cargo/git
+                zed/target
+            key: ${{ runner.os }}-cargo-theme-importer-${{ hashFiles('zed/Cargo.lock') }}
+            restore-keys: |
+                ${{ runner.os }}-cargo-theme-importer-
+
+        - name: Install uv
+          uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+
+        - name: Run sync script
+          run: sh sync.sh
+
+        - name: Open PR if changes
+          uses: peter-evans/create-pull-request@v8
+          with:
+            commit-message: 'chore: sync themes'
+            branch: chore/sync-themes
+            delete-branch: true
+            title: 'chore: sync themes'
+            body: |
+                Automated theme sync from upstream **[Binaryify/OneDark-Pro](https://github.com/Binaryify/OneDark-Pro)**.
+                > [!IMPORTANT]
+                > Update the extension version before merging this PR.
