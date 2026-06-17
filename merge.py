@@ -4,7 +4,7 @@ from pathlib import Path
 THEMES_DIR = Path("themes/").resolve()
 TEMP_THEMES_DIR = Path("themes/tmp/").resolve()
 
-FINAL_THEME = THEMES_DIR / "one-dark-pro-blur.json"
+FINAL_THEME = THEMES_DIR / "onedark-pro-blur.json"
 BASE_THEME = TEMP_THEMES_DIR / "base.json"
 TEMP_THEMES = [
     theme
