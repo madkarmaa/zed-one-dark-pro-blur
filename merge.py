@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from typing import Any
 
 THEMES_DIR = Path("themes/").resolve()
 TEMP_THEMES_DIR = Path("themes/tmp/").resolve()
@@ -12,11 +11,6 @@ TEMP_THEMES = [
     for theme in TEMP_THEMES_DIR.iterdir()
     if theme.is_file() and theme.suffix == ".json" and theme != BASE_THEME
 ]
-
-# ── Per-variant blur overrides ────────────────────────────────────────────────
-# Keys match the theme name stem (after sync.sh runs theme_importer on them).
-# bg = main editor bg at ~85% opacity (d9), surface = panel/sidebar bg at ~82% (d0).
-# All transparent surfaces use 00 alpha so OS blur bleeds through.
 
 
 def make_overrides(bg: str, surface: str) -> dict:
@@ -42,34 +36,77 @@ VARIANT_OVERRIDES = {
     "OneDark-Pro-night-flat": make_overrides("#16191d", "#16191d"),
 }
 
+SYNTAX_OVERRIDES = {
+    "property": {"color": "#e06c75", "font_style": None, "font_weight": None},
+    "boolean": {"color": "#56b6c2", "font_style": None, "font_weight": None},
+    "enum": {"color": "#d19a66", "font_style": None, "font_weight": None},
+    "label": {"color": "#e06c75", "font_style": None, "font_weight": None},
+    "link_text": {"color": "#61afef", "font_style": None, "font_weight": None},
+    "link_uri": {"color": "#c678dd", "font_style": None, "font_weight": None},
+    "preproc": {"color": "#c678dd", "font_style": None, "font_weight": None},
+    "punctuation": {"color": "#abb2bf", "font_style": None, "font_weight": None},
+    "punctuation.bracket": {
+        "color": "#abb2bf",
+        "font_style": None,
+        "font_weight": None,
+    },
+    "punctuation.delimiter": {
+        "color": "#abb2bf",
+        "font_style": None,
+        "font_weight": None,
+    },
+    "punctuation.list_marker": {
+        "color": "#e06c75",
+        "font_style": None,
+        "font_weight": None,
+    },
+    "punctuation.special": {
+        "color": "#c678dd",
+        "font_style": None,
+        "font_weight": None,
+    },
+    "title": {"color": "#e06c75", "font_style": None, "font_weight": None},
+}
+
+
+def apply_syntax_overrides(theme_data: dict) -> dict:
+    style = theme_data.get("style", {})
+    syntax = style.get("syntax", {})
+
+    for token, value in SYNTAX_OVERRIDES.items():
+        syntax[token] = value
+
+    style["syntax"] = syntax
+    theme_data["style"] = style
+    return theme_data
+
 
 def apply_blur(style: dict, theme_file: Path) -> dict:
     overrides = VARIANT_OVERRIDES.get(theme_file.stem)
     if overrides is None:
-        print(f"  [warn] no blur overrides for '{theme_file.stem}', skipping")
         return style
     return {**style, **overrides}
 
 
-def patch_theme_name(theme_file: Path) -> Any:
-    json_data = json.loads(theme_file.read_text())
-    json_data["name"] = theme_file.stem.replace("-", " ")
-    return json_data
+def patch_theme_name(theme_file: Path) -> str:
+    return theme_file.stem.replace("-", " ")
 
 
 def main() -> None:
     base_theme_data = json.loads(BASE_THEME.read_text())
 
     for theme in TEMP_THEMES:
-        patched_data = patch_theme_name(theme)
-        del patched_data["$schema"]
+        json_data = json.loads(theme.read_text())
 
-        if "style" in patched_data:
-            patched_data["style"] = apply_blur(patched_data["style"], theme)
-        else:
-            print(f"  [warn] no 'style' key in {theme.stem}")
+        del json_data["$schema"]
 
-        base_theme_data["themes"].append(patched_data)
+        json_data["name"] = patch_theme_name(theme)
+
+        if "style" in json_data:
+            json_data["style"] = apply_blur(json_data["style"], theme)
+            json_data = apply_syntax_overrides(json_data)
+
+        base_theme_data["themes"].append(json_data)
 
     FINAL_THEME.write_text(json.dumps(base_theme_data, indent=4))
 
